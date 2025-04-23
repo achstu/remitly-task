@@ -25,8 +25,8 @@ def bank_by_code(swift_code: str):
 
     response = {
         "address": bank.address,
-        "bankName": bank.bank_name,
-        "countryISO2": bank.country_iso2,
+        "bankName": bank.name,
+        "countryISO2": bank.country_iso2_code,
         "countryName": bank.country_name,
         "isHeadquarter": bank.is_headquarter,
         "swiftCode": bank.swift_code,
@@ -37,8 +37,8 @@ def bank_by_code(swift_code: str):
         response["branches"] = [
             {
                 "address": branch.address,
-                "bankName": branch.bank_name,
-                "countryISO2": branch.country_iso2,
+                "bankName": branch.name,
+                "countryISO2": branch.country_iso2_code,
                 "isHeadquarter": branch.is_headquarter,
                 "swiftCode": branch.swift_code,
             }
@@ -67,8 +67,8 @@ def bank_by_county(countryISO2code: str):
         "swiftCodes": [
             {
                 "address": bank.address,
-                "bankName": bank.bank_name,
-                "countryISO2": bank.country_iso2,
+                "bankName": bank.name,
+                "countryISO2": bank.country_iso2_code,
                 "isHeadquarter": bank.is_headquarter,
                 "swiftCode": bank.swift_code,
             }
@@ -86,12 +86,15 @@ def add_bank(bank_data: BankCreateRequest):
     if Bank.get_or_none(Bank.swift_code == bank_data.swiftCode.upper()):
         raise HTTPException(status_code=400, detail="SWIFT code already exists")
 
+    print(bank_data.countryISO2)
+
     try:
-        bank = Bank.create(
+        Bank.create(
+            country_iso2_code=bank_data.countryISO2.upper(),
             swift_code=bank_data.swiftCode.upper(),
-            bank_name=bank_data.bankName,
+            # code_type="BIC11",
+            name=bank_data.bankName,
             address=bank_data.address,
-            country_iso2=bank_data.countryISO2.upper(),
             country_name=bank_data.countryName.upper(),
             is_headquarter=bank_data.isHeadquarter,
         )
