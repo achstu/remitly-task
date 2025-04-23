@@ -1,15 +1,25 @@
-from peewee import Model, TextField, FixedCharField, SqliteDatabase
+from peewee import Model, TextField, FixedCharField, BooleanField, SqliteDatabase
+
+db = SqliteDatabase("banks.db")
+
 
 class Bank(Model):
-    country_iso2_code = TextField()
-    swift_code = FixedCharField(primary_key=True, max_length=16)
-    code_type = TextField()
-    name = TextField()
-    address = TextField(null=True)
-    town_name = TextField()
+    swift_code = FixedCharField(primary_key=True, max_length=11)
+    bank_name = TextField()
+    address = TextField()
+    country_iso2 = FixedCharField(max_length=2)
     country_name = TextField()
-    time_zone = TextField()
+    is_headquarter = BooleanField()
 
     class Meta:
-        database = SqliteDatabase('banks.db')
-        table_name = 'banks'
+        database = db
+        table_name = "banks"
+
+    def get_branches(self):
+        if not self.is_headquarter:
+            return []
+
+        return Bank.select().where(
+            (Bank.swift_code.startswith(self.swift_code[:8]))
+            & (Bank.is_headquarter == False)
+        )
