@@ -12,6 +12,7 @@ with open("swift_codes.csv", newline="") as file:
     columns = list(map(lambda col: col.replace(" ", "_").lower(), next(reader)))
 
     for row in reader:
+        row = list(map(lambda f: f.strip() if f else None, row))
         Bank.create(**dict(zip(columns, row)))
 
 db.close()
