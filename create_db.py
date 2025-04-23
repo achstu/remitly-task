@@ -12,7 +12,9 @@ with open("swift_codes.csv", newline="") as file:
     columns = list(map(lambda col: col.replace(" ", "_").lower(), next(reader)))
 
     for row in reader:
-        row = list(map(lambda f: f.strip() if f else None, row))
-        Bank.create(**dict(zip(columns, row)))
+        row = [field.strip() if field.strip() else None for field in row]
+        args = dict(zip(columns, row))
+        args['is_headquarter'] = args['swift_code'].endswith('XXX')
+        Bank.create(**args)
 
 db.close()
