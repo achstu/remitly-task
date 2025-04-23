@@ -42,10 +42,26 @@ def bank_by_code(swift_code: str):
     description="Return all SWIFT codes with details for a specific country (both headquarters and branches).",
 )
 def bank_by_county(countryISO2code: str):
+    countryISO2code = countryISO2code.upper()
+
     banks = Bank.select().where(Bank.country_iso2_code == countryISO2code)
-    for bank in banks:
-        print(bank.name)
-    return {}
+    if not banks:
+        raise HTTPException(status_code=404, detail="No banks found for this country")
+    
+    country_name = banks[0].country_name
+
+    return {
+        "countryISO2": countryISO2code,
+        "countryName": country_name,
+        "swiftCodes": [{
+            "address": bank.address,
+            "bankName": bank.bank_name,
+            "countryISO2": bank.country_iso2,
+            "isHeadquarter": bank.is_headquarter,
+            "swiftCode": bank.swift_code
+        } for bank in banks]
+    }
+
 
 
 @app.post(
