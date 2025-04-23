@@ -1,9 +1,9 @@
-from model import Bank
-from fastapi import FastAPI, HTTPException
-
+from fastapi import FastAPI, HTTPException, status
+from model import Bank, db
+from pydantic import BaseModel
 
 app = FastAPI()
-# db = Bank._meta.database
+
 
 
 @app.get(
@@ -11,10 +11,30 @@ app = FastAPI()
     description="Retrieve details of a single SWIFT code whether for a headquarters or branches.",
 )
 def bank_by_code(swift_code: str):
-    bank = Bank.get_or_none(Bank.swift_code == swift_code)
+    bank = Bank.get_or_none(Bank.swift_code == swift_code.upper())
     if not bank:
         raise HTTPException(status_code=404, detail="Bank not found")
-    return bank.__data__
+
+    response = {
+        "address": bank.address,
+        "bankName": bank.bank_name,
+        "countryISO2": bank.country_iso2,
+        "countryName": bank.country_name,
+        "isHeadquarter": bank.is_headquarter,
+        "swiftCode": bank.swift_code
+    }
+    
+    if bank.is_headquarter:
+        branches = bank.get_branches()
+        response["branches"] = [{
+            "address": branch.address,
+            "bankName": branch.bank_name,
+            "countryISO2": branch.country_iso2,
+            "isHeadquarter": branch.is_headquarter,
+            "swiftCode": branch.swift_code
+        } for branch in branches]
+    
+    return response
 
 
 @app.get(
